@@ -73,7 +73,8 @@ Item {
             sessionStopDialogActive ||
             separateSessionStopWindow.visible ||
             sessionPinDialogActive ||
-            separateSessionPinWindow.visible
+            separateSessionPinWindow.visible ||
+            sessionKeyboardDialog.opened
         );
     }
 
@@ -1126,6 +1127,40 @@ Item {
         }
     }
 
+    Dialog {
+        id: sessionKeyboardDialog
+        parent: Overlay.overlay
+        x: Math.round((root.width - width) / 2)
+        y: Math.round((root.height - height) / 2)
+        title: qsTr("Console Keyboard")
+        modal: true
+        closePolicy: Popup.NoAutoClose
+        standardButtons: Dialog.Ok | Dialog.Cancel
+        property bool updatingFromConsole: false
+        onAboutToShow: {
+            view.grabInput(keyboardField);
+            keyboardField.forceActiveFocus();
+            view.updateOverlayInteractionActive();
+        }
+        onClosed: {
+            view.releaseInput();
+            view.updateOverlayInteractionActive();
+        }
+        onAccepted: Chiaki.keyboardAccept()
+        onRejected: Chiaki.keyboardReject()
+        Material.roundedScale: Material.MediumScale
+
+        TextField {
+            id: keyboardField
+            implicitWidth: 400
+            onTextEdited: {
+                if (!sessionKeyboardDialog.updatingFromConsole)
+                    Chiaki.keyboardSetText(text);
+            }
+            Keys.onReturnPressed: sessionKeyboardDialog.accept()
+        }
+    }
+
     Window {
         id: separateSessionPinWindow
         readonly property int dialogWidth: 360
@@ -1252,6 +1287,30 @@ Item {
             else
                 sessionPinDialog.open();
             Chiaki.window.requestOverlayUpdate();
+        }
+
+        function onSessionKeyboardRequested(text) {
+            if (sessionKeyboardDialog.opened)
+                return;
+            menuController.close();
+            sessionKeyboardDialog.updatingFromConsole = true;
+            keyboardField.text = text;
+            sessionKeyboardDialog.updatingFromConsole = false;
+            sessionKeyboardDialog.open();
+            Chiaki.window.requestOverlayUpdate();
+        }
+
+        function onSessionKeyboardTextChanged(text) {
+            if (!sessionKeyboardDialog.opened || keyboardField.text === text)
+                return;
+            sessionKeyboardDialog.updatingFromConsole = true;
+            keyboardField.text = text;
+            sessionKeyboardDialog.updatingFromConsole = false;
+        }
+
+        function onSessionKeyboardClosed() {
+            if (sessionKeyboardDialog.opened)
+                sessionKeyboardDialog.close();
         }
 
         function onSessionStopDialogRequested() {

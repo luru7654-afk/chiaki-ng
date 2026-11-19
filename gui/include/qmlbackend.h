@@ -191,6 +191,9 @@ public:
     Q_INVOKABLE void stopSession(bool sleep);
     Q_INVOKABLE void sessionGoHome();
     Q_INVOKABLE void enterPin(const QString &pin);
+    Q_INVOKABLE void keyboardSetText(const QString &text);
+    Q_INVOKABLE void keyboardAccept();
+    Q_INVOKABLE void keyboardReject();
     Q_INVOKABLE QUrl psnLoginUrl() const;
     Q_INVOKABLE bool checkPsnRedirectURL(const QUrl &url) const;
     Q_INVOKABLE bool handlePsnLoginRedirect(const QUrl &url);
@@ -245,6 +248,9 @@ signals:
     void error(const QString &title, const QString &text);
     void sessionError(const QString &title, const QString &text);
     void sessionPinDialogRequested();
+    void sessionKeyboardRequested(const QString &text);
+    void sessionKeyboardTextChanged(const QString &text);
+    void sessionKeyboardClosed();
     void sessionStopDialogRequested();
     void registDialogRequested(const QString &host, bool ps5, const QString &duid);
     void psnLoginAccountIdDone(const QString &accountId);

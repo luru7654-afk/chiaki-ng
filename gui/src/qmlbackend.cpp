@@ -1202,6 +1202,10 @@ void QmlBackend::createSession(const StreamSessionConnectInfo &connect_info)
             emit sessionPinDialogRequested();
     });
 
+    connect(session, &StreamSession::KeyboardOpened, this, &QmlBackend::sessionKeyboardRequested);
+    connect(session, &StreamSession::KeyboardTextChanged, this, &QmlBackend::sessionKeyboardTextChanged);
+    connect(session, &StreamSession::KeyboardClosedByConsole, this, &QmlBackend::sessionKeyboardClosed);
+
     connect(session, &StreamSession::DataHolepunchProgress, this, [this](bool finished) {
         if(finished)
         {
@@ -1679,6 +1683,24 @@ void QmlBackend::sessionGoHome()
         return;
 
     session->GoHome();
+}
+
+void QmlBackend::keyboardSetText(const QString &text)
+{
+    if (session)
+        session->KeyboardSetText(text);
+}
+
+void QmlBackend::keyboardAccept()
+{
+    if (session)
+        session->KeyboardAccept();
+}
+
+void QmlBackend::keyboardReject()
+{
+    if (session)
+        session->KeyboardReject();
 }
 
 void QmlBackend::enterPin(const QString &pin)

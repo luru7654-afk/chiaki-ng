@@ -303,7 +303,7 @@ StreamSessionConnectInfo::StreamSessionConnectInfo(
 	const bool keyboard_controller_enabled_setting = settings->GetKeyboardEnabled();
 	this->keyboard_controller_enabled = keyboard_controller_enabled_setting;
 	this->mouse_touch_enabled = settings->GetMouseTouchEnabled();
-	this->enable_keyboard = false;
+	this->enable_keyboard = true;
 	this->enable_dualsense = true;
 	this->enable_idr_on_fec_failure = settings->GetIDROnFECFailureEnabled();
 	this->rumble_haptics_intensity = settings->GetRumbleHapticsIntensity();
@@ -471,7 +471,7 @@ StreamSession::StreamSession(const StreamSessionConnectInfo &connect_info, QObje
 	chiaki_connect_info.host = host_str.constData();
 	chiaki_connect_info.video_profile = connect_info.video_profile;
 	chiaki_connect_info.video_profile_auto_downgrade = true;
-	chiaki_connect_info.enable_keyboard = false;
+	chiaki_connect_info.enable_keyboard = true;
 	chiaki_connect_info.enable_idr_on_fec_failure = connect_info.enable_idr_on_fec_failure;
 	chiaki_connect_info.enable_dualsense = connect_info.enable_dualsense;
 	chiaki_connect_info.packet_loss_max = connect_info.packet_loss_max;
@@ -885,6 +885,22 @@ void StreamSession::ToggleMute()
 	if(audio_in)
 		SDL_PauseAudioDevice(audio_in, muted);
 	emit MutedChanged();
+}
+
+void StreamSession::KeyboardSetText(const QString &text)
+{
+	QByteArray data = text.toUtf8();
+	chiaki_session_keyboard_set_text(&session, data.constData());
+}
+
+void StreamSession::KeyboardAccept()
+{
+	chiaki_session_keyboard_accept(&session);
+}
+
+void StreamSession::KeyboardReject()
+{
+	chiaki_session_keyboard_reject(&session);
 }
 
 void StreamSession::SetLoginPIN(const QString &pin)
@@ -2407,6 +2423,15 @@ void StreamSession::Event(ChiakiEvent *event)
 			break;
 		case CHIAKI_EVENT_HOLEPUNCH:
 			emit DataHolepunchProgress(event->data_holepunch.finished);
+			break;
+		case CHIAKI_EVENT_KEYBOARD_OPEN:
+			emit KeyboardOpened(event->keyboard.text_str ? QString::fromUtf8(event->keyboard.text_str) : QString());
+			break;
+		case CHIAKI_EVENT_KEYBOARD_TEXT_CHANGE:
+			emit KeyboardTextChanged(event->keyboard.text_str ? QString::fromUtf8(event->keyboard.text_str) : QString());
+			break;
+		case CHIAKI_EVENT_KEYBOARD_REMOTE_CLOSE:
+			emit KeyboardClosedByConsole();
 			break;
 		case CHIAKI_EVENT_NICKNAME_RECEIVED:
 			emit NicknameReceived(event->server_nickname);

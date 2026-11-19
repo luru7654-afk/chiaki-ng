@@ -345,6 +345,9 @@ class StreamSession : public QObject
 	Q_INVOKABLE bool RequestIDR();
 		void ToggleMute();
 		void SetLoginPIN(const QString &pin);
+		void KeyboardSetText(const QString &text);
+		void KeyboardAccept();
+		void KeyboardReject();
 		void GoHome();
 		QString GetHost() { return host; }
 		bool GetConnected() { return connected; }
@@ -389,6 +392,9 @@ class StreamSession : public QObject
 		void DualSenseIntensityChanged(uint8_t intensity);
 		void SessionQuit(ChiakiQuitReason reason, const QString &reason_str);
 		void LoginPINRequested(bool incorrect);
+		void KeyboardOpened(const QString &text);
+		void KeyboardTextChanged(const QString &text);
+		void KeyboardClosedByConsole();
 		void DataHolepunchProgress(bool finished);
 		void AutoRegistSucceeded(const ChiakiRegisteredHost &host);
 		void NicknameReceived(QString nickname);
